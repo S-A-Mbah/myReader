@@ -1,0 +1,8 @@
+node_modules/
+.cache/
+coverage/
+*.log
+.env
+
+# Automated tests and their sample files: kept locally, not shared
+test/

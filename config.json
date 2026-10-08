@@ -1,0 +1,7 @@
+{
+  "port": 3000,
+  "model": "onnx-community/Kokoro-82M-v1.0-ONNX",
+  "dtype": "fp32",
+  "defaultVoice": "af_heart",
+  "cacheDir": ".cache/models"
+}

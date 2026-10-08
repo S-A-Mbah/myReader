@@ -1,0 +1,537 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="light dark" />
+    <title>ReadAloud</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preload" href="/fonts/geist.woff2" as="font" type="font/woff2" crossorigin />
+    <script src="/theme.js"></script>
+    <link rel="stylesheet" href="/styles.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#player">Skip to player</a>
+
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <h1>ReadAloud</h1>
+      </div>
+
+      <div class="mode" role="radiogroup" aria-label="Reading mode">
+        <label class="seg"><input type="radio" name="mode" value="auto" checked /><span>Auto</span></label>
+        <label class="seg"><input type="radio" name="mode" value="text" /><span>Plain text</span></label>
+        <label class="seg"><input type="radio" name="mode" value="table" /><span>Table (MCQ)</span></label>
+      </div>
+      <p class="badge" id="detected" aria-live="polite">Nothing pasted yet</p>
+
+      <div class="topbar-end">
+        <p class="model-status" id="model-status" data-state="loading" aria-live="polite">
+          <span class="dot-spinner" aria-hidden="true"></span>
+          <span id="model-status-text">Connecting…</span>
+        </p>
+        <button type="button" class="btn ghost small hidden" id="model-retry">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-refresh"></use></svg>
+          Retry
+        </button>
+        <button type="button" class="btn ghost small" id="open-settings" aria-haspopup="dialog">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-settings"></use></svg>
+          Settings
+        </button>
+      </div>
+    </header>
+
+    <div class="workspace">
+      <aside class="source" id="input-panel" aria-label="Source">
+        <div class="panel-head">
+          <label for="input" class="panel-title">Source</label>
+          <div class="input-actions">
+            <label class="btn ghost small file-btn">
+              <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-upload"></use></svg>
+              Open file
+              <input
+                type="file"
+                id="file-input"
+                accept=".pdf,.txt,.csv,.tsv,.md,.markdown,application/pdf,text/plain,text/csv,text/tab-separated-values,text/markdown"
+              />
+            </label>
+            <button type="button" class="btn ghost small" id="clear-input">
+              <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-x"></use></svg>
+              Clear
+            </button>
+          </div>
+        </div>
+        <div class="drop-wrap" id="drop-zone">
+          <textarea
+            id="input"
+            spellcheck="false"
+            placeholder="Paste an article, or copy rows from Excel, Google Sheets, Word or a web page and paste them here. You can also open or drop a PDF book, or a .txt, .csv, .tsv or .md file."
+          ></textarea>
+          <div class="drop-overlay" aria-hidden="true">Drop the file to load it</div>
+        </div>
+        <section class="book hidden" id="book" aria-label="Book">
+          <div class="book-card">
+            <span class="sheet-icon" aria-hidden="true">
+              <svg class="icon"><use href="/vendor/icons.svg?v=4#i-book"></use></svg>
+            </span>
+            <div class="book-info">
+              <p class="book-title" id="book-title"></p>
+              <p class="book-meta" id="book-meta"></p>
+            </div>
+            <button type="button" class="icon-btn" id="book-close" aria-label="Close book" title="Close book">
+              <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-x"></use></svg>
+            </button>
+          </div>
+          <div class="book-loading hidden" id="book-loading">
+            <p class="progress-label" id="book-loading-text" aria-live="polite">Opening the PDF…</p>
+            <div class="bar" aria-hidden="true"><span class="bar-fill" id="book-bar"></span></div>
+            <div class="row-end">
+              <button type="button" class="btn small" id="book-cancel">Cancel</button>
+            </div>
+          </div>
+          <nav class="contents" id="contents" aria-labelledby="contents-title">
+            <button
+              type="button"
+              class="contents-toggle"
+              id="contents-toggle"
+              aria-expanded="true"
+              aria-controls="contents-list"
+              title="Hide contents"
+            >
+              <span class="sheet-icon contents-icon" aria-hidden="true">
+                <svg class="icon"><use href="/vendor/icons.svg?v=4#i-align-left"></use></svg>
+              </span>
+              <span class="contents-text">
+                <span class="panel-title" id="contents-title">Contents</span>
+                <span class="contents-current" id="contents-current"></span>
+              </span>
+              <span class="contents-action">
+                <span class="when-closed">Show</span>
+                <span class="when-open">Hide</span>
+                <svg class="icon contents-chevron" aria-hidden="true">
+                  <use href="/vendor/icons.svg?v=4#i-chevron-down"></use>
+                </svg>
+              </span>
+            </button>
+            <ol class="toc" id="contents-list"></ol>
+            <p class="muted hidden" id="contents-empty">Nothing to show: this PDF has no readable text.</p>
+          </nav>
+        </section>
+        <ul class="warnings" id="warnings" aria-live="polite"></ul>
+
+        <details class="mapping-sheet hidden" id="mapping-sheet">
+          <summary>
+            <span class="sheet-icon" aria-hidden="true">
+              <svg class="icon"><use href="/vendor/icons.svg?v=4#i-adjustments-horizontal"></use></svg>
+            </span>
+            <span class="sheet-text">
+              <span class="sheet-title">Columns</span>
+              <span class="sheet-summary" id="mapping-summary"></span>
+            </span>
+            <span class="sheet-action">
+              <span class="when-closed">Edit</span>
+              <span class="when-open">Done</span>
+              <svg class="icon sheet-chevron" aria-hidden="true">
+                <use href="/vendor/icons.svg?v=4#i-chevron-up"></use>
+              </svg>
+            </span>
+          </summary>
+          <fieldset class="mapping" id="mapping">
+            <legend class="sr-only">Column mapping</legend>
+            <div class="mapping-grid">
+              <label class="field">
+                <span>Question <em class="req" aria-hidden="true">required</em></span>
+                <select id="map-question" aria-required="true"></select>
+              </label>
+              <label class="field">
+                <span>Answer <em class="req" aria-hidden="true">required</em></span>
+                <select id="map-answer" aria-required="true"></select>
+              </label>
+              <label class="field">
+                <span>Number</span>
+                <select id="map-number"></select>
+              </label>
+              <div class="field">
+                <span id="options-label">Options <em class="req">tick one for a combined cell</em></span>
+                <div class="options-pick" id="map-options" role="group" aria-labelledby="options-label"></div>
+              </div>
+              <div class="header-field">
+                <label class="check">
+                  <input type="checkbox" id="has-header" checked />
+                  <span>Header row</span>
+                </label>
+                <label class="inline-num">
+                  <span>on row</span>
+                  <input type="number" id="header-row" min="1" max="50" value="1" inputmode="numeric" />
+                </label>
+              </div>
+            </div>
+          </fieldset>
+        </details>
+      </aside>
+
+      <main class="view" id="view" aria-label="Content">
+        <div class="view-head hidden" id="table-head">
+          <p class="panel-title" id="table-caption">Table</p>
+          <label class="check small-check">
+            <input type="checkbox" id="show-script" checked />
+            <span>Show spoken script</span>
+          </label>
+        </div>
+        <div class="empty" id="empty">
+          <h2>Paste a question table or any text</h2>
+          <p class="muted">
+            Copy rows from a spreadsheet and they are read as "Question 1. … Answer, …", skipping the options. Anything
+            else is read as written. Open a PDF to listen to a textbook chapter by chapter.
+          </p>
+          <div class="empty-actions">
+            <button type="button" class="btn" id="sample-table">
+              <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-table"></use></svg>
+              Try a sample quiz
+            </button>
+            <button type="button" class="btn ghost" id="sample-text">
+              <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-align-left"></use></svg>
+              Try sample text
+            </button>
+          </div>
+        </div>
+        <div class="table-wrap hidden" id="table-wrap">
+          <table class="mcq" id="table">
+            <caption class="sr-only">
+              Parsed rows. Click a row, or focus the table and press Enter, to start reading from that row.
+            </caption>
+            <thead id="thead"></thead>
+            <tbody
+              id="tbody"
+              tabindex="0"
+              aria-label="Rows. Use the up and down arrows to move and Enter to play from a row."
+            ></tbody>
+          </table>
+        </div>
+        <div class="book-head hidden" id="book-head">
+          <button
+            type="button"
+            class="icon-btn"
+            id="section-prev"
+            aria-label="Previous section (Shift+Left)"
+            title="Previous section (Shift+←)"
+          >
+            <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-chevron-left"></use></svg>
+          </button>
+          <div class="book-head-text">
+            <p class="book-section-title" id="book-section-title"></p>
+            <p class="book-section-meta" id="book-section-meta"></p>
+          </div>
+          <button
+            type="button"
+            class="icon-btn"
+            id="section-next"
+            aria-label="Next section (Shift+Right)"
+            title="Next section (Shift+→)"
+          >
+            <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-chevron-right"></use></svg>
+          </button>
+        </div>
+        <article
+          class="text-view hidden"
+          id="text-view"
+          tabindex="0"
+          aria-label="Text. Click a sentence to start reading from it."
+        ></article>
+      </main>
+    </div>
+
+    <footer class="player" id="player" aria-label="Player">
+      <div class="player-progress" aria-hidden="true"><span id="player-progress-fill"></span></div>
+
+      <div class="now">
+        <form class="now-pos" id="jump-form" autocomplete="off">
+          <span id="pos-unit">Row</span>
+          <label for="jump-to" class="sr-only" id="jump-label">Start from row</label>
+          <input
+            type="number"
+            id="jump-to"
+            min="1"
+            value="1"
+            inputmode="numeric"
+            title="Type a number and press Enter to start there"
+          />
+          <span id="pos-total">of 0</span>
+        </form>
+        <button type="button" class="play-hint" id="play-hint" title="Show where this is in the text"></button>
+        <p class="sr-only" id="progress-text" aria-live="polite">Ready</p>
+      </div>
+
+      <div class="transport">
+        <button
+          type="button"
+          class="icon-btn"
+          id="btn-repeat"
+          aria-label="Restart current (R)"
+          title="Restart current (R)"
+        >
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-rotate"></use></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-prev" aria-label="Previous (Left arrow)" title="Previous (←)">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-player-skip-back"></use></svg>
+        </button>
+        <button
+          type="button"
+          class="play-btn"
+          id="btn-play"
+          aria-label="Play (Space)"
+          title="Play (Space)"
+          data-state="stopped"
+        >
+          <svg class="icon i-play" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-player-play"></use></svg>
+          <svg class="icon i-pause" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-player-pause"></use></svg>
+          <svg class="icon i-load" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-loader-2"></use></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-next" aria-label="Next (Right arrow)" title="Next (→)">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-player-skip-forward"></use></svg>
+        </button>
+        <button type="button" class="icon-btn" id="btn-stop" aria-label="Stop (Escape)" title="Stop (Esc)">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-player-stop"></use></svg>
+        </button>
+      </div>
+
+      <div class="tuning" id="player-tuning">
+        <button
+          type="button"
+          class="icon-btn toggle"
+          id="btn-loop"
+          aria-pressed="false"
+          aria-label="Loop"
+          title="Loop from the start after the end"
+        >
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-repeat"></use></svg>
+        </button>
+        <label class="voice-field">
+          <span class="sr-only">Voice</span>
+          <select id="voice" title="Voice"></select>
+        </label>
+        <label class="slider" title="Speed">
+          <span class="slider-label">Speed</span>
+          <input type="range" id="speed" min="0.5" max="2" step="0.05" value="1" />
+          <output id="speed-out" for="speed">1.00×</output>
+        </label>
+        <label class="slider volume" title="Volume">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-volume"></use></svg>
+          <span class="sr-only">Volume</span>
+          <input type="range" id="volume" min="0" max="1" step="0.05" value="1" />
+          <output id="volume-out" for="volume" class="sr-only">100%</output>
+        </label>
+        <button type="button" class="btn primary small" id="open-export" aria-haspopup="dialog">
+          <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-download"></use></svg>
+          Export
+        </button>
+      </div>
+      <button
+        type="button"
+        class="icon-btn tray-toggle"
+        id="tray-toggle"
+        aria-expanded="true"
+        aria-controls="player-tuning"
+        aria-label="Hide player controls"
+        title="Hide player controls"
+      >
+        <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-chevron-down"></use></svg>
+      </button>
+    </footer>
+
+    <dialog class="drawer" id="settings" aria-labelledby="settings-title">
+      <form method="dialog" class="drawer-inner" id="settings-form">
+        <header class="drawer-head">
+          <h2 id="settings-title">Settings</h2>
+          <button type="submit" class="icon-btn" aria-label="Close settings">
+            <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-x"></use></svg>
+          </button>
+        </header>
+
+        <section class="group">
+          <h3 id="theme-title">Appearance</h3>
+          <div class="mode theme-pick" role="radiogroup" aria-labelledby="theme-title">
+            <label class="seg"><input type="radio" name="theme" value="system" /><span>System</span></label>
+            <label class="seg"><input type="radio" name="theme" value="light" /><span>Light</span></label>
+            <label class="seg"><input type="radio" name="theme" value="dark" /><span>Dark</span></label>
+          </div>
+        </section>
+
+        <section class="group">
+          <h3>Source</h3>
+          <label class="check">
+            <input type="checkbox" id="remember-paste" />
+            <span
+              >Keep my document and place after a refresh
+              <span class="muted">(stored only in this browser; Clear removes it)</span></span
+            >
+          </label>
+        </section>
+
+        <section class="group">
+          <h3>Spoken template</h3>
+          <label class="field">
+            <span class="sr-only">Template</span>
+            <textarea id="template" rows="3" spellcheck="false"></textarea>
+          </label>
+          <p class="hint" id="template-hint">
+            Placeholders: <code>{number}</code> <code>{question}</code> <code>{answer}</code>
+            <code>{answerLetter}</code> <code>{answerText}</code> <code>{optionA}</code>…<code>{optionE}</code>
+            <code>{options}</code>
+          </p>
+          <p class="hint error hidden" id="template-error" role="alert"></p>
+          <div class="row-end">
+            <button type="button" class="btn small" id="template-reset">Reset to default</button>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="read-options" />
+            <span>Also read options</span>
+          </label>
+        </section>
+
+        <section class="group">
+          <h3 id="answer-style-title">Letter answers</h3>
+          <div class="radios" role="radiogroup" aria-labelledby="answer-style-title">
+            <label class="check"
+              ><input type="radio" name="answer-style" value="letterAndText" /><span
+                >Letter and text <span class="muted">"Answer, B, Paris."</span></span
+              ></label
+            >
+            <label class="check"
+              ><input type="radio" name="answer-style" value="optionText" /><span
+                >Option text <span class="muted">"Answer, Paris."</span></span
+              ></label
+            >
+            <label class="check"
+              ><input type="radio" name="answer-style" value="asWritten" /><span
+                >As written <span class="muted">"Answer, B."</span></span
+              ></label
+            >
+          </div>
+          <label class="field">
+            <span>When the answer is empty, say</span>
+            <input type="text" id="missing-answer" maxlength="200" />
+          </label>
+        </section>
+
+        <section class="group">
+          <h3>Pauses</h3>
+          <div class="pair">
+            <label class="field">
+              <span>Between rows (s)</span>
+              <input type="number" id="pause-row" min="0" max="30" step="0.1" />
+            </label>
+            <label class="field">
+              <span>Before the answer (s)</span>
+              <input type="number" id="pause-answer" min="0" max="30" step="0.1" />
+            </label>
+            <label class="field">
+              <span>Between sentences (s)</span>
+              <input type="number" id="pause-sentence" min="0" max="10" step="0.1" />
+            </label>
+            <label class="field">
+              <span>Between paragraphs (s)</span>
+              <input type="number" id="pause-paragraph" min="0" max="10" step="0.1" />
+            </label>
+          </div>
+          <label class="check">
+            <input type="checkbox" id="quiz-mode" />
+            <span>Quiz mode: a longer pause before the answer so you can think</span>
+          </label>
+          <label class="field narrow">
+            <span>Quiz pause (s)</span>
+            <input type="number" id="pause-quiz" min="0" max="60" step="0.5" />
+          </label>
+        </section>
+
+        <section class="group">
+          <h3>Pronunciation</h3>
+          <label class="field">
+            <span>One per line, as <code>written = spoken</code></span>
+            <textarea id="pronunciations" rows="3" spellcheck="false" placeholder="e.g. = for example"></textarea>
+          </label>
+        </section>
+
+        <section class="group">
+          <h3>Keyboard</h3>
+          <dl class="keys">
+            <dt><kbd>Space</kbd></dt>
+            <dd>Play or pause</dd>
+            <dt><kbd>→</kbd> <kbd>←</kbd></dt>
+            <dd>Next or previous</dd>
+            <dt><kbd>Shift</kbd> <kbd>→</kbd> <kbd>←</kbd></dt>
+            <dd>Next or previous section of a book</dd>
+            <dt><kbd>R</kbd></dt>
+            <dd>Restart current</dd>
+            <dt><kbd>Esc</kbd></dt>
+            <dd>Stop</dd>
+            <dt><kbd>↑</kbd> <kbd>↓</kbd> <kbd>Enter</kbd></dt>
+            <dd>In the table: move and play from a row</dd>
+          </dl>
+        </section>
+      </form>
+    </dialog>
+
+    <dialog class="modal" id="export" aria-labelledby="export-title">
+      <div class="modal-inner">
+        <header class="drawer-head">
+          <h2 id="export-title">Export audio</h2>
+          <button type="button" class="icon-btn" id="export-close" aria-label="Close">
+            <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-x"></use></svg>
+          </button>
+        </header>
+        <div id="export-setup">
+          <p class="muted" id="export-summary"></p>
+          <div class="radios" role="radiogroup" aria-label="File format" id="export-formats">
+            <label class="check"
+              ><input type="radio" name="export-format" value="wav" checked /><span>One WAV file</span></label
+            >
+            <label class="check" data-format="mp3"
+              ><input type="radio" name="export-format" value="mp3" /><span
+                >One MP3 file <span class="muted">smaller, good for phones</span></span
+              ></label
+            >
+            <label class="check" data-format="zip"
+              ><input type="radio" name="export-format" value="zip" /><span>One WAV per row, zipped</span></label
+            >
+          </div>
+          <div class="row-end">
+            <button type="button" class="btn primary" id="export-start">Start export</button>
+          </div>
+        </div>
+        <div id="export-run" class="hidden">
+          <p class="progress-label" id="export-progress-text" aria-live="polite">Starting…</p>
+          <div
+            class="bar"
+            role="progressbar"
+            aria-labelledby="export-progress-text"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-valuenow="0"
+            id="export-bar"
+          >
+            <span class="bar-fill" id="export-bar-fill"></span>
+          </div>
+          <div class="row-end">
+            <button type="button" class="btn" id="export-cancel">Cancel</button>
+          </div>
+        </div>
+        <div id="export-done" class="hidden">
+          <p class="success">
+            <svg class="icon" aria-hidden="true"><use href="/vendor/icons.svg?v=4#i-check"></use></svg>
+            <span id="export-done-text">Export ready.</span>
+          </p>
+          <div class="row-end">
+            <a class="btn" id="export-transcript" href="#" download>Transcript (.srt)</a>
+            <a class="btn primary" id="export-download" href="#" download>Download</a>
+          </div>
+        </div>
+      </div>
+    </dialog>
+
+    <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+    <audio id="audio" preload="auto"></audio>
+  </body>
+</html>

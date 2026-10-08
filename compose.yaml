@@ -1,0 +1,20 @@
+# docker compose up --build    then open http://localhost:3000
+# Another port: PORT=3123 docker compose up --build   (PowerShell: $env:PORT=3123; docker compose up --build)
+services:
+  readaloud:
+    build: .
+    image: readaloud:local
+    init: true # forwards Ctrl+C / docker stop to Node so it shuts down cleanly
+    environment:
+      PORT: ${PORT:-3000}
+    ports:
+      # Published to this computer's loopback only, so the app is not reachable from
+      # your network. The same port on both sides: the server only accepts requests
+      # addressed to localhost/127.0.0.1 on its own port (DNS-rebinding defence).
+      - '127.0.0.1:${PORT:-3000}:${PORT:-3000}'
+    volumes:
+      - readaloud-models:/app/.cache/models
+    restart: unless-stopped
+
+volumes:
+  readaloud-models:

@@ -1,0 +1,18 @@
+# Built fresh inside the image (native binaries must match Linux, not this machine)
+node_modules
+# The voice model lives in a Docker volume, not in the image
+.cache
+# Not needed to run the app
+test
+coverage
+docs
+.git
+.gitignore
+.editorconfig
+.prettierrc.json
+.prettierignore
+eslint.config.js
+*.log
+.env
+Dockerfile
+compose.yaml
