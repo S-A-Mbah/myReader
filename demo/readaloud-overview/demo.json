@@ -1,0 +1,220 @@
+{
+  "version": 1,
+  "slug": "readaloud-overview",
+  "product": {
+    "name": "ReadAloud",
+    "tagline": "Your study material, read out loud, on your own computer.",
+    "audience": "Students revising from PDF textbooks and multiple-choice question banks",
+    "valueProps": [
+      "Reads PDF textbooks with chapter navigation",
+      "Reads MCQ question banks as question + answer",
+      "Free and local: no API keys"
+    ]
+  },
+  "brand": {
+    "colors": {
+      "primary": "#2FA37A",
+      "bg": "#10151B",
+      "text": "#F1F4F7",
+      "muted": "#95A3B2"
+    },
+    "logo": "assets/logo.png",
+    "font": "Geist"
+  },
+  "format": {
+    "width": 1920,
+    "height": 1080,
+    "fps": 30
+  },
+  "voice": {
+    "provider": "fal",
+    "model": "fal-ai/elevenlabs/tts/eleven-v3",
+    "voice": "Rachel",
+    "stability": 0.4,
+    "speed": 1
+  },
+  "presenter": {
+    "mode": "none",
+    "description": "",
+    "characterImage": null,
+    "engine": "fal-ai/kling-video/ai-avatar/v2/standard"
+  },
+  "music": {
+    "enabled": false,
+    "bed": null,
+    "duckDb": -14
+  },
+  "captions": {
+    "enabled": false,
+    "style": "clean"
+  },
+  "pacing": {
+    "breathSec": 0.45
+  },
+  "cover": null,
+  "timeline": [
+    {
+      "id": "intro",
+      "kind": "card",
+      "durationSec": 4.0,
+      "logo": "assets/logo.png",
+      "title": "ReadAloud",
+      "titleSize": 110,
+      "subtitle": "Your study material, read out loud. On your own computer.",
+      "note": "Title card, also the README poster frame."
+    },
+    {
+      "id": "quiz-title",
+      "kind": "card",
+      "durationSec": 2.8,
+      "title": "Question banks",
+      "titleSize": 96,
+      "subtitle": "Paste a table. Hear each question and its answer, options skipped.",
+      "note": "Section break before the quiz demo."
+    },
+    {
+      "id": "quiz",
+      "kind": "demo",
+      "target": "web",
+      "durationSec": 16.67,
+      "actions": "actions/quiz.json",
+      "video": "clips/quiz.mp4",
+      "events": "clips/quiz.events.json",
+      "zoomToClick": false,
+      "note": "Try a sample quiz, the Spoken script column is highlighted, Play reads row 1 then row 2 (speed 1.25x).",
+      "overlays": [
+        {
+          "type": "callout",
+          "atSec": 1.9,
+          "durationSec": 2.6,
+          "text": "The spoken script: question + answer",
+          "xPct": 62,
+          "yPct": 52
+        },
+        {
+          "type": "callout",
+          "atSec": 4.6,
+          "durationSec": 4.4,
+          "text": "Options are skipped",
+          "xPct": 62,
+          "yPct": 52
+        },
+        {
+          "type": "callout",
+          "atSec": 9.4,
+          "durationSec": 6.6,
+          "text": "Highlighted row by row as it reads",
+          "xPct": 62,
+          "yPct": 52
+        }
+      ]
+    },
+    {
+      "id": "book-title",
+      "kind": "card",
+      "durationSec": 2.8,
+      "title": "Textbooks",
+      "titleSize": 96,
+      "subtitle": "Open a PDF. Jump to any section from the book's own contents.",
+      "note": "Section break before the PDF demo."
+    },
+    {
+      "id": "book",
+      "kind": "demo",
+      "target": "web",
+      "durationSec": 20.63,
+      "actions": "actions/book.json",
+      "video": "clips/book.mp4",
+      "events": "clips/book.events.json",
+      "zoomToClick": false,
+      "note": "Bishop PRML (758 pages, 285 sections) already open; click 1.2 Probability Theory, then Next section to 1.2.1, page counter highlighted.",
+      "overlays": [
+        {
+          "type": "callout",
+          "atSec": 0.4,
+          "durationSec": 2.9,
+          "text": "758 pages \u00b7 285 sections from the book's own contents",
+          "xPct": 58,
+          "yPct": 88
+        },
+        {
+          "type": "callout",
+          "atSec": 3.8,
+          "durationSec": 6.0,
+          "text": "Click any section to jump straight there",
+          "xPct": 58,
+          "yPct": 88
+        },
+        {
+          "type": "callout",
+          "atSec": 11.8,
+          "durationSec": 2.5,
+          "text": "Next section, one click",
+          "xPct": 58,
+          "yPct": 88
+        },
+        {
+          "type": "callout",
+          "atSec": 14.5,
+          "durationSec": 5.4,
+          "text": "Page 37 of 758 \u00b7 type a page number to go there",
+          "xPct": 58,
+          "yPct": 88
+        }
+      ]
+    },
+    {
+      "id": "extras",
+      "kind": "card",
+      "durationSec": 4.2,
+      "title": "Picks up where you left off",
+      "titleSize": 84,
+      "subtitle": "28 voices  \u00b7  0.5x to 2x speed  \u00b7  MP3 export  \u00b7  light and dark",
+      "note": "Feature summary."
+    },
+    {
+      "id": "outro",
+      "kind": "card",
+      "durationSec": 5.0,
+      "logo": "assets/logo.png",
+      "title": "Free. Local. No API keys.",
+      "titleSize": 96,
+      "subtitle": "Runs on your computer with an open-source voice.",
+      "cta": "docker compose up",
+      "note": "Closing card."
+    }
+  ],
+  "transitions": [
+    {
+      "after": "intro",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "quiz-title",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "quiz",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "book-title",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "book",
+      "type": "fade",
+      "ms": 400
+    },
+    {
+      "after": "extras",
+      "type": "fade",
+      "ms": 400
+    }
+  ],
+  "style": "explainer"
+}

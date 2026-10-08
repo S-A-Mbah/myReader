@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "id": "quiz",
+  "url": "http://127.0.0.1:3125/",
+  "viewport": { "width": 1920, "height": 1080 },
+  "setup": [
+    { "type": "click", "selectors": ["#speed"], "label": "speed to 1.25x (slider middle), off camera" }
+  ],
+  "steps": [
+    { "type": "dwell", "ms": 600, "label": "empty state" },
+    { "type": "click", "selectors": ["#sample-table"], "label": "Try a sample quiz", "dwellMs": 1300 },
+    { "type": "highlight", "selectors": ["#thead th.script"], "ms": 1400, "label": "the spoken script column" },
+    { "type": "click", "selectors": ["#btn-play"], "label": "Play", "dwellMs": 600 },
+    { "type": "dwell", "ms": 11000, "label": "reading row by row", "weight": 4 }
+  ]
+}

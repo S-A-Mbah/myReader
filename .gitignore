@@ -6,3 +6,10 @@ coverage/
 
 # Automated tests and their sample files: kept locally, not shared
 test/
+
+# Demo video projects: keep the manifest, action scripts and assets; the rest is regenerated
+demo/*/remotion/
+demo/*/clips/
+demo/*/qa/
+demo/*/out/
+demo/*/audio/

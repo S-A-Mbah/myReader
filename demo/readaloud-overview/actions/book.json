@@ -1,0 +1,99 @@
+{
+  "version": 1,
+  "id": "book",
+  "url": "http://127.0.0.1:3125/",
+  "viewport": {
+    "width": 1920,
+    "height": 1080
+  },
+  "setup": [
+    {
+      "type": "upload",
+      "selectors": [
+        "#file-input"
+      ],
+      "files": "C:/Users/donal/Downloads/Bishop-Pattern-Recognition-and-Machine-Learning-2006.pdf",
+      "label": "open the PDF off camera"
+    },
+    {
+      "type": "wait",
+      "selector": "#contents-list li",
+      "timeoutMs": 180000,
+      "label": "book parsed"
+    },
+    {
+      "type": "click",
+      "selectors": [
+        "#section-next"
+      ],
+      "label": "skip front matter, off camera"
+    },
+    {
+      "type": "click",
+      "selectors": [
+        "#section-next"
+      ],
+      "label": "skip front matter, off camera"
+    },
+    {
+      "type": "click",
+      "selectors": [
+        "#section-next"
+      ],
+      "label": "skip front matter, off camera"
+    },
+    {
+      "type": "click",
+      "selectors": [
+        "#section-next"
+      ],
+      "label": "skip front matter, off camera"
+    },
+    {
+      "type": "dwell",
+      "ms": 4000,
+      "label": "toast clears"
+    }
+  ],
+  "steps": [
+    {
+      "type": "dwell",
+      "ms": 1200,
+      "label": "book open, contents listed"
+    },
+    {
+      "type": "click",
+      "selectors": [
+        ".toc-item[data-s=\"6\"]"
+      ],
+      "label": "1.2 Probability Theory",
+      "dwellMs": 2500
+    },
+    {
+      "type": "dwell",
+      "ms": 4500,
+      "label": "reading along"
+    },
+    {
+      "type": "click",
+      "selectors": [
+        "#section-next"
+      ],
+      "label": "next section",
+      "dwellMs": 2500
+    },
+    {
+      "type": "highlight",
+      "selectors": [
+        "#jump-form"
+      ],
+      "ms": 1500,
+      "label": "page number"
+    },
+    {
+      "type": "dwell",
+      "ms": 2500,
+      "label": "hold"
+    }
+  ]
+}
