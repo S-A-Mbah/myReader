@@ -190,6 +190,8 @@ async function fetchAudio(seg, v, signal, prefetch) {
 
 /** Set by explicit jumps so the next position change scrolls into view, once. */
 let revealNextPosition = false;
+/** Whether the view scrolls along with the reader. Off once someone scrolls by hand. */
+let following = true;
 
 const player = new Player({
   audio,
@@ -208,10 +210,12 @@ const player = new Player({
   },
   onPosition: (i) => {
     if (state.book && i >= 0) ensureBookSection(i);
-    // Do not follow the reader line by line: snapping the view on every sentence fights
-    // anyone scrolling around. Only an explicit jump (Contents, page number, section
-    // buttons) scrolls, once; clicking the spoken line in the player brings you back.
-    view.setCurrent(i, { scroll: revealNextPosition });
+    // Follow the reader, but not while someone is scrolling around by hand: snapping
+    // the view back on every sentence fights them. Following resumes on an explicit
+    // jump (Contents, page number, section buttons), on clicking the spoken line in the
+    // player, or once the reader brings the spoken sentence back on screen themselves.
+    if (revealNextPosition || view.currentInView()) following = true;
+    view.setCurrent(i, { scroll: following });
     revealNextPosition = false;
     updateProgress();
     updateMediaSession(i);
@@ -720,6 +724,22 @@ $('text-view').addEventListener('click', (e) => {
   const s = /** @type {HTMLElement} */ (e.target).closest('.s');
   if (!s || playableReason()) return;
   player.play(Number(/** @type {HTMLElement} */ (s).dataset.i));
+});
+
+/* Scrolling the text or table by hand stops the view following the reader. Input
+   events, not 'scroll': the view's own follow scrolling fires 'scroll' too. A stray
+   wheel tick does no harm, since following resumes while the spoken line stays on screen. */
+const stopFollowing = () => {
+  following = false;
+};
+$('view').addEventListener('wheel', stopFollowing, { passive: true });
+$('view').addEventListener('touchmove', stopFollowing, { passive: true });
+$('view').addEventListener('keydown', (e) => {
+  if (['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'].includes(e.key)) stopFollowing();
+});
+// A press on the scroll container itself (not a sentence or row) is its scrollbar.
+$('view').addEventListener('pointerdown', (e) => {
+  if (e.target === $('text-view') || e.target === $('table-wrap')) stopFollowing();
 });
 
 /* Keyboard shortcuts (FR-35). Off while typing, and Space is left alone on
@@ -1555,6 +1575,7 @@ $('play-hint').addEventListener('click', () => {
   if (state.book) ensureBookSection(i); // re-renders if the reader browsed to another section
   view.setCurrent(i, { scroll: false });
   view.revealCurrent();
+  following = true;
 });
 $('section-prev').addEventListener('click', () => gotoSection(-1));
 $('section-next').addEventListener('click', () => gotoSection(1));

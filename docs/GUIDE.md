@@ -58,6 +58,18 @@ On Windows PowerShell: `$env:PORT=3123; npm start`
    and an Answer column are chosen.
 4. Press **Play**, click a row (or sentence) to start there, or type a row number in **Start from row**.
 
+The text or table scrolls along with the reader. Scroll away by hand and it stops following, so you can
+look around; it picks up again when you scroll back to the spoken line, jump somewhere, or click the
+spoken line in the player.
+
+### Install as a desktop app
+
+In Chrome or Edge, open <http://localhost:3000> and choose **Install ReadAloud** (the install icon at the
+right of the address bar, or the browser menu: Edge _Apps → Install this site as an app_, Chrome _Cast,
+save and share → Install page as app_). ReadAloud then opens in its own window from a desktop or Start
+menu shortcut. The server still has to be running (`npm start`); the app is a window onto it, not a
+separate copy. Uninstall it from the app window's menu.
+
 ### Textbooks (PDF)
 
 Open or drop a `.pdf` to listen to it like a book.

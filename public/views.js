@@ -18,11 +18,11 @@ function el(tag, className, text) {
 }
 
 /**
- * Scroll `node` into the middle of `container` when it is not already visible.
+ * Whether `node` is fully visible inside `container` and the window.
  * @param {HTMLElement} node
  * @param {HTMLElement} container
  */
-function reveal(node, container) {
+function inView(node, container) {
   const c = container.getBoundingClientRect();
   const r = node.getBoundingClientRect();
   const header = container.querySelector('thead')?.getBoundingClientRect().height ?? 0;
@@ -32,7 +32,16 @@ function reveal(node, container) {
   const tray = document.getElementById('player')?.getBoundingClientRect().height ?? 0;
   const top = Math.max(c.top + header, 0);
   const bottom = Math.min(c.bottom, window.innerHeight - tray);
-  if (r.top >= top && r.bottom <= bottom) return;
+  return r.top >= top && r.bottom <= bottom;
+}
+
+/**
+ * Scroll `node` into the middle of `container` when it is not already visible.
+ * @param {HTMLElement} node
+ * @param {HTMLElement} container
+ */
+function reveal(node, container) {
+  if (inView(node, container)) return;
   node.scrollIntoView({ block: 'center', behavior: reducedMotion.matches ? 'auto' : 'smooth' });
 }
 
@@ -228,6 +237,12 @@ export class View {
     node.classList.add('located');
     setTimeout(() => node.classList.remove('located'), 900);
     return true;
+  }
+
+  /** Whether the current sentence or row is on screen. */
+  currentInView() {
+    const node = this.rows[this.current];
+    return Boolean(node) && inView(node, this.kind === 'table' ? this.els.tableWrap : this.els.textView);
   }
 
   /**

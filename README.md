@@ -42,6 +42,9 @@ npm start
 
 Open <http://localhost:3000>. The first start downloads the voice model (about 330 MB) once.
 
+To use it as a desktop app (PWA), choose **Install ReadAloud** in Chrome or Edge. It opens in its own
+window from a desktop shortcut; `npm start` must still be running.
+
 If port 3000 is taken, run `PORT=3123 npm start` (PowerShell: `$env:PORT=3123; npm start`).
 
 With [Docker](https://www.docker.com/products/docker-desktop/) instead of Node.js:
